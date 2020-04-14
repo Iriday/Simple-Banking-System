@@ -8,5 +8,20 @@ public class Controller implements ControllerInterface {
         this.model = model;
         this.view = view;
         view.initialize(this);
+        run();
+    }
+
+    private void run() {
+        view.run();
+    }
+
+    @Override
+    public void createAccount() {
+
+    }
+
+    @Override
+    public void logIntoAccount() {
+
     }
 }
