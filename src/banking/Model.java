@@ -17,6 +17,7 @@ public class Model implements ModelInterface {
 
     @Override
     public boolean logIntoAccount(String cardNumber, String PIN) {
+        if (Utils.applyLuhnAlgorithm(cardNumber) % 10 != 0) return false;
         for (Account acc : accounts) {
             if (acc.getCard().getCardNumber().equals(cardNumber) && acc.getPIN().equals(PIN)) {
                 loggedIn = true;

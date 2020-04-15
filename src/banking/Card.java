@@ -19,7 +19,14 @@ public class Card {
             builderCardNum = new StringBuilder();
             builderCardNum.append("400000"); // Issuer Identification Number (IIN)
             builderCardNum.append(Utils.randNDigitNum(9)); // account identifier | customer account number
-            builderCardNum.append(Utils.randNDigitNum(1)); // check digit | checksum
+
+            int result = Utils.applyLuhnAlgorithm(builderCardNum.toString() + 0);
+            for (int i = 0; i < 10; i++) {  // find/add check digit | checksum
+                if ((result + i) % 10 == 0) {
+                    builderCardNum.append(i);
+                    break;
+                }
+            }
 
             newCard = new Card(builderCardNum.toString());
             if (!cards.contains(newCard)) {
