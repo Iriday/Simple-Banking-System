@@ -1,7 +1,7 @@
 package banking;
 
 public interface ControllerInterface {
-    void createAccount();
+    String createAccount();
 
     void logIntoAccount();
 }

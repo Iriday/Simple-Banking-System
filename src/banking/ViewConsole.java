@@ -14,7 +14,7 @@ public class ViewConsole implements ViewInterface {
     public void run() {
         var scn = new Scanner(System.in);
         while (true) {
-            System.out.println("1. Create account\n2. Log into account\n0. Exit");
+            output("1. Create account\n2. Log into account\n0. Exit");
             int in;
             try {
                 in = Integer.parseInt(scn.next().trim());
@@ -22,16 +22,22 @@ public class ViewConsole implements ViewInterface {
                 System.out.println("Error, incorrect input\n");
                 continue;
             }
+            output("");
 
             if (in == 0) {
                 break;
             } else if (in == 1) {
-                controller.createAccount();
+                output(controller.createAccount());
             } else if (in == 2) {
                 controller.logIntoAccount();
             } else {
-                System.out.println("Error, incorrect input\n");
+                System.out.println("Error, incorrect input");
             }
+            output("");
         }
+    }
+
+    private void output(String data) {
+        System.out.println(data);
     }
 }
