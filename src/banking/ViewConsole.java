@@ -14,26 +14,23 @@ public class ViewConsole implements ViewInterface {
 
     @Override
     public void run() {
+        menuMain();
+    }
+
+    private void menuMain() {
         while (true) {
             output("1. Create account\n2. Log into account\n0. Exit");
-            int in;
-            try {
-                in = Integer.parseInt(scn.nextLine().trim());
-            } catch (NumberFormatException e) {
-                output("Error, incorrect input\n");
-                continue;
-            }
+            String option = scn.nextLine().trim();
             output("");
 
-            if (in == 0) {
-                output("Bye!");
-                return;
-            } else if (in == 1) {
-                output(controller.createAccount());
-            } else if (in == 2) {
-                menuLogIntoAccount();
-            } else {
-                output("Error, incorrect input");
+            switch (option) {
+                case "0" -> {
+                    output("Bye!");
+                    return;
+                }
+                case "1" -> output(controller.createAccount());
+                case "2" -> menuLogIntoAccount();
+                default -> output("Error, incorrect input");
             }
             output("");
         }
