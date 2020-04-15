@@ -17,11 +17,21 @@ public class Controller implements ControllerInterface {
 
     @Override
     public String createAccount() {
-       return model.createAccount();
+        return model.createAccount();
     }
 
     @Override
-    public void logIntoAccount() {
+    public boolean logIntoAccount(String cardNumber, String PIN) {
+        return model.logIntoAccount(cardNumber, PIN);
+    }
 
+    @Override
+    public long getAccountBalance() {
+        return model.getAccountBalance();
+    }
+
+    @Override
+    public void logOutOfAccount() {
+        model.logOutOfAccount();
     }
 }
