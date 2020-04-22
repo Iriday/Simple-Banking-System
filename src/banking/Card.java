@@ -1,54 +1,60 @@
 package banking;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.sql.*;
 
 public class Card {
-    private static final Set<Card> cards = new HashSet<>();
     private final String cardNumber;
+    private final String pin;
 
-    private Card(String cardNumber) {
+    private Card(String cardNumber, String pin) {
         this.cardNumber = cardNumber;
+        this.pin = pin;
     }
 
     // factory method
-    public static Card generateUniqueCard() {
+    public static Card generateUniqueCard(String dbUrl) {
         StringBuilder builderCardNum;
-        Card newCard;
-        while (true) {
-            builderCardNum = new StringBuilder();
-            builderCardNum.append("400000"); // Issuer Identification Number (IIN)
-            builderCardNum.append(Utils.randNDigitNum(9)); // account identifier | customer account number
 
-            int result = Utils.applyLuhnAlgorithm(builderCardNum.toString() + 0);
-            for (int i = 0; i < 10; i++) {  // find/add check digit | checksum
-                if ((result + i) % 10 == 0) {
-                    builderCardNum.append(i);
-                    break;
+        try (Connection cn = DriverManager.getConnection(dbUrl); Statement st = cn.createStatement()) {
+            while (true) {
+                builderCardNum = new StringBuilder();
+                builderCardNum.append("400000"); // Issuer Identification Number (IIN)
+                builderCardNum.append(Utils.randNDigitNum(9)); // account identifier | customer account number
+
+                int result = Utils.applyLuhnAlgorithm(builderCardNum.toString() + 0);
+                for (int i = 0; i < 10; i++) {  // find/add check digit | checksum
+                    if ((result + i) % 10 == 0) {
+                        builderCardNum.append(i);
+                        break;
+                    }
+                }
+
+                try (ResultSet rs = st.executeQuery("""
+                        SELECT
+                            number
+                        FROM 
+                            card
+                        WHERE 
+                            number = $number
+                        ;""".replace("$number", builderCardNum.toString()))) {
+
+                    if (!rs.next()) { //if number is unique return
+                        return new Card(builderCardNum.toString(), Utils.randNDigitNum(4));
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
             }
-
-            newCard = new Card(builderCardNum.toString());
-            if (!cards.contains(newCard)) {
-                cards.add(newCard);
-                return newCard;
-            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public String getCardNumber() {
+    public String getNumber() {
         return cardNumber;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        return cardNumber.equals(((Card) obj).cardNumber);
-    }
-
-    @Override
-    public int hashCode() {
-        return cardNumber.hashCode();
+    public String getPin() {
+        return pin;
     }
 }
