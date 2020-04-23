@@ -44,8 +44,8 @@ public class Model implements ModelInterface {
                         pin)
                     VALUES(
                         $id,
-                        $num,
-                        $pin
+                        '$num',
+                        '$pin'
                     );"""
                     .replace("$id", id)
                     .replace("$num", number)
@@ -69,8 +69,8 @@ public class Model implements ModelInterface {
                      FROM
                          card
                      WHERE
-                         number = $num
-                         AND pin = $pin
+                         number = '$num'
+                         AND pin = '$pin'
                      ;"""
                      .replace("$num", cardNumber)
                      .replace("$pin", pin))
@@ -98,8 +98,8 @@ public class Model implements ModelInterface {
                      FROM
                         card
                      WHERE
-                        number = $num
-                        AND pin = $pin
+                        number = '$num'
+                        AND pin = '$pin'
                      ;"""
                      .replace("$num", cardNumber)
                      .replace("$pin", cardPin))) {

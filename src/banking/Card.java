@@ -40,7 +40,7 @@ public class Card {
                         FROM 
                             card
                         WHERE 
-                            number = $num
+                            number = '$num'
                         ;""".replace("$num", builderCardNum.toString()))) {
 
                     if (!rs.next()) { //if number is unique return
