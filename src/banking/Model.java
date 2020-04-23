@@ -20,10 +20,10 @@ public class Model implements ModelInterface {
         try (Connection cn = DriverManager.getConnection(dbUrl); Statement st = cn.createStatement()) {
             st.execute("""
                     CREATE TABLE IF NOT EXISTS card(
-                        id INT not null,
-                        number VARCHAR(100) not null,
-                        pin VARCHAR(10) not null, 
-                        balance DEFAULT 0 not null
+                        id INTEGER not null,
+                        number TEXT not null,
+                        pin TEXT not null, 
+                        balance INTEGER DEFAULT 0 not null
                     );""");
         } catch (SQLException e) {
             throw new RuntimeException(e);
