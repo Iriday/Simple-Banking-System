@@ -3,16 +3,21 @@ package banking;
 import java.sql.*;
 
 public class Card {
-    private final String cardNumber;
+    private final String number;
     private final String pin;
+    private final long id;
 
-    private Card(String cardNumber, String pin) {
-        this.cardNumber = cardNumber;
+    private Card(String number, String pin, long id) {
+        this.number = number;
         this.pin = pin;
+        this.id = id;
     }
 
-    // factory method
     public static Card generateUniqueCard(String dbUrl) {
+        return new Card(generateUniqueNumber(dbUrl), generateRandPin(), getMaxIdFromDb(dbUrl) + 1);
+    }
+
+    public static String generateUniqueNumber(String dbUrl) {
         StringBuilder builderCardNum;
 
         try (Connection cn = DriverManager.getConnection(dbUrl); Statement st = cn.createStatement()) {
@@ -35,11 +40,11 @@ public class Card {
                         FROM 
                             card
                         WHERE 
-                            number = $number
-                        ;""".replace("$number", builderCardNum.toString()))) {
+                            number = $num
+                        ;""".replace("$num", builderCardNum.toString()))) {
 
                     if (!rs.next()) { //if number is unique return
-                        return new Card(builderCardNum.toString(), Utils.randNDigitNum(4));
+                        return builderCardNum.toString();
                     }
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
@@ -50,11 +55,34 @@ public class Card {
         }
     }
 
+    public static String generateRandPin() {
+        return Utils.randNDigitNum(4);
+    }
+
+    public static long getMaxIdFromDb(String dbUrl) { // 0 if empty
+        try (Connection cn = DriverManager.getConnection(dbUrl);
+             Statement st = cn.createStatement();
+             ResultSet rs = st.executeQuery("""
+                     SELECT 
+                        MAX(id) as id
+                     FROM
+                        card
+                     ;""")) {
+            return rs.getLong("id");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public String getNumber() {
-        return cardNumber;
+        return number;
     }
 
     public String getPin() {
         return pin;
+    }
+
+    public long getId() {
+        return id;
     }
 }

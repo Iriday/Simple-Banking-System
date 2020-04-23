@@ -20,9 +20,10 @@ public class Model implements ModelInterface {
         try (Connection cn = DriverManager.getConnection(dbUrl); Statement st = cn.createStatement()) {
             st.execute("""
                     CREATE TABLE IF NOT EXISTS card(
-                        number VARCHAR(100) NOT NULL,
-                        pin VARCHAR(10) NOT NULL, 
-                        balance DEFAULT 0 NOT NULL
+                        id INT not null,
+                        number VARCHAR(100) not null,
+                        pin VARCHAR(10) not null, 
+                        balance DEFAULT 0 not null
                     );""");
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -32,23 +33,27 @@ public class Model implements ModelInterface {
     @Override
     public String createAccount() {
         Card newCard = Card.generateUniqueCard(dbUrl);
-        String cardNumber = newCard.getNumber();
-        String cardPin = newCard.getPin();
+        String number = newCard.getNumber();
+        String pin = newCard.getPin();
+        String id = newCard.getId() + "";
         try (Connection cn = DriverManager.getConnection(dbUrl); Statement st = cn.createStatement()) {
             st.executeUpdate("""
                     INSERT INTO card(
+                        id,
                         number,
                         pin)
                     VALUES(
+                        $id,
                         $num,
                         $pin
                     );"""
-                    .replace("$num", cardNumber)
-                    .replace("$pin", cardPin));
+                    .replace("$id", id)
+                    .replace("$num", number)
+                    .replace("$pin", pin));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return "Your card have been created\n" + "Your card number:\n" + cardNumber + "\nYour card PIN:\n" + cardPin;
+        return "Your card have been created\n" + "Your card number:\n" + number + "\nYour card PIN:\n" + pin;
     }
 
     @Override
