@@ -5,7 +5,6 @@ import java.sql.*;
 public class Model implements ModelInterface {
     private final String dbUrl;
     private String cardNumber = null;
-    private String cardPin = null;
 
     public Model(String[] args) {
         if (args.length == 2 && args[0].equals("-fileName")) {
@@ -77,7 +76,6 @@ public class Model implements ModelInterface {
         ) {
             if (rs.next()) {
                 this.cardNumber = cardNumber;
-                this.cardPin = pin;
                 return true; // loggedIn
             } else {
                 return false;
@@ -89,7 +87,7 @@ public class Model implements ModelInterface {
 
     @Override
     public long getAccountBalance() {
-        if (cardNumber == null || cardPin == null) throw new IllegalStateException("User not logged in");
+        throwExcIfNotLoggedIn();
         try (Connection cn = DriverManager.getConnection(dbUrl);
              Statement st = cn.createStatement();
              ResultSet rs = st.executeQuery("""
@@ -99,10 +97,8 @@ public class Model implements ModelInterface {
                         card
                      WHERE
                         number = '$num'
-                        AND pin = '$pin'
                      ;"""
-                     .replace("$num", cardNumber)
-                     .replace("$pin", cardPin))) {
+                     .replace("$num", cardNumber))) {
             return rs.getLong("balance");
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -111,7 +107,7 @@ public class Model implements ModelInterface {
 
     @Override
     public void addIncome(long income) {
-        if (cardNumber == null) throw new IllegalStateException("User not logged in");
+        throwExcIfNotLoggedIn();
         String addIncome = """
                 UPDATE
                     card
@@ -131,7 +127,7 @@ public class Model implements ModelInterface {
 
     @Override
     public void closeAccount() {
-        if (cardNumber == null) throw new IllegalStateException("User not logged in");
+        throwExcIfNotLoggedIn();
         String delAcc = """
                 DELETE
                 FROM
@@ -151,6 +147,9 @@ public class Model implements ModelInterface {
     @Override
     public void logOutOfAccount() {
         cardNumber = null;
-        cardPin = null;
+    }
+
+    private void throwExcIfNotLoggedIn() {
+        if (cardNumber == null) throw new IllegalStateException("User not logged in");
     }
 }
