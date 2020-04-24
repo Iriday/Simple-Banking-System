@@ -31,6 +31,11 @@ public class Controller implements ControllerInterface {
     }
 
     @Override
+    public void closeAccount() {
+        model.closeAccount();
+    }
+
+    @Override
     public void logOutOfAccount() {
         model.logOutOfAccount();
     }

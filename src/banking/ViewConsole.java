@@ -29,14 +29,14 @@ public class ViewConsole implements ViewInterface {
                     return;
                 }
                 case "1" -> output(controller.createAccount());
-                case "2" -> menuLogIntoAccount();
+                case "2" -> menuAccount();
                 default -> output("Error, incorrect input");
             }
             output("");
         }
     }
 
-    private void menuLogIntoAccount() {
+    private void menuAccount() {
         output("Enter your card number:");
         String cardNumber = scn.nextLine().trim();
         output("Enter your PIN:");
@@ -50,7 +50,12 @@ public class ViewConsole implements ViewInterface {
         output("\nYou have successfully logged in!");
 
         while (true) {
-            output("\n1. Balance\n2. Log out\n0. Exit");
+            output("""
+                                        
+                    1. Balance
+                    2. Close account
+                    3. Log out
+                    0. Exit""");
             String option = scn.nextLine().trim();
             output("");
 
@@ -61,6 +66,11 @@ public class ViewConsole implements ViewInterface {
                 }
                 case "1" -> output("Balance: " + controller.getAccountBalance());
                 case "2" -> {
+                    controller.closeAccount();
+                    output("You have successfully closed account!");
+                    return;
+                }
+                case "3" -> {
                     controller.logOutOfAccount();
                     output("You have successfully logged out!");
                     return;

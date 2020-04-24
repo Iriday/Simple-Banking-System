@@ -7,5 +7,7 @@ public interface ControllerInterface {
 
     long getAccountBalance();
 
+    void closeAccount();
+
     void logOutOfAccount();
 }

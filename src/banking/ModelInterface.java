@@ -7,5 +7,7 @@ public interface ModelInterface {
 
     long getAccountBalance();
 
+    void closeAccount();
+
     void logOutOfAccount();
 }

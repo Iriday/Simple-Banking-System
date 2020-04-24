@@ -110,6 +110,25 @@ public class Model implements ModelInterface {
     }
 
     @Override
+    public void closeAccount() {
+        if (cardNumber == null) throw new IllegalStateException("User not logged in");
+        String delAcc = """
+                DELETE
+                FROM
+                    card
+                WHERE
+                    number = ?
+                ;""";
+        try (Connection cn = DriverManager.getConnection(dbUrl); PreparedStatement ps = cn.prepareStatement(delAcc)) {
+            ps.setString(1, cardNumber);
+            ps.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        logOutOfAccount();
+    }
+
+    @Override
     public void logOutOfAccount() {
         cardNumber = null;
         cardPin = null;
