@@ -53,8 +53,9 @@ public class ViewConsole implements ViewInterface {
             output("""
                                         
                     1. Balance
-                    2. Close account
-                    3. Log out
+                    2. Add income
+                    3. Close account
+                    4. Log out
                     0. Exit""");
             String option = scn.nextLine().trim();
             output("");
@@ -66,11 +67,25 @@ public class ViewConsole implements ViewInterface {
                 }
                 case "1" -> output("Balance: " + controller.getAccountBalance());
                 case "2" -> {
+                    output("Enter number: ");
+                    try {
+                        long number = Long.parseLong(scn.nextLine().trim());
+                        if (number < 0) {
+                            output("\nIncorrect input, please try again!");
+                        } else {
+                            controller.addIncome(number);
+                            output("\nIncome has been added successfully!");
+                        }
+                    } catch (NumberFormatException e) {
+                        output("\nIncorrect input, please try again!");
+                    }
+                }
+                case "3" -> {
                     controller.closeAccount();
                     output("You have successfully closed account!");
                     return;
                 }
-                case "3" -> {
+                case "4" -> {
                     controller.logOutOfAccount();
                     output("You have successfully logged out!");
                     return;

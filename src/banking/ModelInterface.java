@@ -7,6 +7,8 @@ public interface ModelInterface {
 
     long getAccountBalance();
 
+    void addIncome(long income);
+
     void closeAccount();
 
     void logOutOfAccount();

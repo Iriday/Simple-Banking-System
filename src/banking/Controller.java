@@ -31,6 +31,11 @@ public class Controller implements ControllerInterface {
     }
 
     @Override
+    public void addIncome(long income) {
+        model.addIncome(income);
+    }
+
+    @Override
     public void closeAccount() {
         model.closeAccount();
     }

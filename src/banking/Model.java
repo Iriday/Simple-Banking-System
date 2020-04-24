@@ -110,6 +110,26 @@ public class Model implements ModelInterface {
     }
 
     @Override
+    public void addIncome(long income) {
+        if (cardNumber == null) throw new IllegalStateException("User not logged in");
+        String addIncome = """
+                UPDATE
+                    card
+                SET
+                    balance = balance + ?
+                WHERE
+                    number = ?
+                ;""";
+        try (Connection cn = DriverManager.getConnection(dbUrl); PreparedStatement ps = cn.prepareStatement(addIncome)) {
+            ps.setLong(1, income);
+            ps.setString(2, cardNumber);
+            ps.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void closeAccount() {
         if (cardNumber == null) throw new IllegalStateException("User not logged in");
         String delAcc = """
