@@ -30,58 +30,21 @@ public class Model implements ModelInterface {
     }
 
     @Override
-    public String createAccount() {
+    public Card createAccount() {
         Card newCard = Card.generateUniqueCard(dbUrl);
-        String number = newCard.getNumber();
-        String pin = newCard.getPin();
-        String id = newCard.getId() + "";
-        try (Connection cn = DriverManager.getConnection(dbUrl); Statement st = cn.createStatement()) {
-            st.executeUpdate("""
-                    INSERT INTO card(
-                        id,
-                        number,
-                        pin)
-                    VALUES(
-                        $id,
-                        '$num',
-                        '$pin'
-                    );"""
-                    .replace("$id", id)
-                    .replace("$num", number)
-                    .replace("$pin", pin));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return "Your card have been created\n" + "Your card number:\n" + number + "\nYour card PIN:\n" + pin;
+        insertCardInDb(newCard, dbUrl);
+        return newCard;
     }
 
     @Override
     public boolean logIntoAccount(String cardNumber, String pin) {
         if (!Utils.isCardCorrect(cardNumber) || !Utils.isPinCorrect(pin)) return false;
 
-        try (Connection cn = DriverManager.getConnection(dbUrl);
-             Statement st = cn.createStatement();
-             ResultSet rs = st.executeQuery("""
-                     SELECT
-                         number,
-                         pin
-                     FROM
-                         card
-                     WHERE
-                         number = '$num'
-                         AND pin = '$pin'
-                     ;"""
-                     .replace("$num", cardNumber)
-                     .replace("$pin", pin))
-        ) {
-            if (rs.next()) {
-                this.cardNumber = cardNumber;
-                return true; // loggedIn
-            } else {
-                return false;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        if (isCardInDb(cardNumber, pin, dbUrl)) {
+            this.cardNumber = cardNumber;
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -107,7 +70,7 @@ public class Model implements ModelInterface {
     }
 
     @Override
-    public void doTransfer(String receiverCardNumber, long money) throws NotEnoughMoneyException{
+    public void doTransfer(String receiverCardNumber, long money) throws NotEnoughMoneyException {
         throwExcIfNotLoggedIn();
         if (recCardCheckErrMessage == null) throw new IllegalStateException("receiverCardCheckBeforeTransfer is not called before doTransfer");
         if (!recCardCheckErrMessage.isEmpty()) throw new IllegalStateException("Transfer is not possible because receiverCardCheckBeforeTransfer returned an error");
@@ -120,19 +83,7 @@ public class Model implements ModelInterface {
     @Override
     public void closeAccount() {
         throwExcIfNotLoggedIn();
-        String delAcc = """
-                DELETE
-                FROM
-                    card
-                WHERE
-                    number = ?
-                ;""";
-        try (Connection cn = DriverManager.getConnection(dbUrl); PreparedStatement ps = cn.prepareStatement(delAcc)) {
-            ps.setString(1, cardNumber);
-            ps.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        deleteCardFromDb(cardNumber, dbUrl);
         logOutOfAccount();
     }
 
@@ -143,6 +94,27 @@ public class Model implements ModelInterface {
 
     private void throwExcIfNotLoggedIn() {
         if (cardNumber == null) throw new IllegalStateException("User not logged in");
+    }
+
+    private static void insertCardInDb(Card card, String dbUrl) {
+        String insertCard = """
+                INSERT INTO card(
+                    id,
+                    number,
+                    pin)
+                VALUES(
+                    ?,
+                    ?,
+                    ?
+                );""";
+        try (Connection cn = DriverManager.getConnection(dbUrl); PreparedStatement ps = cn.prepareStatement(insertCard)) {
+            ps.setLong(1, card.getId());
+            ps.setString(2, card.getNumber());
+            ps.setString(3, card.getPin());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static long getBalance(String cardNumber, String dbUrl) {
@@ -204,7 +176,23 @@ public class Model implements ModelInterface {
         }
     }
 
-    private static boolean isCardInDb(String cardNumber, String dbUrl) {
+    private static void deleteCardFromDb(String cardNumber, String dbUrl) {
+        String sqlDelCard = """
+                DELETE
+                FROM
+                    card
+                WHERE
+                    number = ?
+                ;""";
+        try (Connection cn = DriverManager.getConnection(dbUrl); PreparedStatement ps = cn.prepareStatement(sqlDelCard)) {
+            ps.setString(1, cardNumber);
+            ps.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static boolean isCardNumberInDb(String cardNumber, String dbUrl) {
         String isNumberInDb = """
                 SELECT
                     number
@@ -225,10 +213,32 @@ public class Model implements ModelInterface {
         }
     }
 
+    private static boolean isCardInDb(String cardNumber, String cardPin, String dbUrl) {
+        try (Connection cn = DriverManager.getConnection(dbUrl);
+             Statement st = cn.createStatement();
+             ResultSet rs = st.executeQuery("""
+                     SELECT
+                         number,
+                         pin
+                     FROM
+                         card
+                     WHERE
+                         number = '$num'
+                         AND pin = '$pin'
+                     ;"""
+                     .replace("$num", cardNumber)
+                     .replace("$pin", cardPin))
+        ) {
+            return rs.next();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static String receiverCardCheckBeforeTransfer(String senderCardNumber, String receiverCardNumber, String dbUrl) {
         if (senderCardNumber.equals(receiverCardNumber)) return "You can't transfer money to the same account!";
         if (!Utils.isCardCorrect(receiverCardNumber)) return "Probably you made mistake in card number. Please try again!";
-        if (!isCardInDb(receiverCardNumber, dbUrl)) return "Such a card does not exist";
+        if (!isCardNumberInDb(receiverCardNumber, dbUrl)) return "Such a card does not exist";
         return "";
     }
 }

@@ -28,7 +28,10 @@ public class ViewConsole implements ViewInterface {
                     output("Bye!");
                     return;
                 }
-                case "1" -> output(controller.createAccount());
+                case "1" -> {
+                    Card card = controller.createAccount();
+                    output("Your card have been created\n" + "Your card number:\n" + card.getNumber() + "\nYour card PIN:\n" + card.getPin());
+                }
                 case "2" -> menuAccount();
                 default -> output("Error, incorrect input");
             }
@@ -98,7 +101,7 @@ public class ViewConsole implements ViewInterface {
                             try {
                                 controller.doTransfer(receiverCardNumber, number);
                                 output("\nTransfer has been performed successfully!");
-                            }catch (NotEnoughMoneyException e){
+                            } catch (NotEnoughMoneyException e) {
                                 output("\nYou do not have enough money to perform this transfer!");
                             }
                         }

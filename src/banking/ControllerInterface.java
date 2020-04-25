@@ -1,7 +1,7 @@
 package banking;
 
 public interface ControllerInterface {
-    String createAccount();
+    Card createAccount();
 
     boolean logIntoAccount(String cardNumber, String PIN);
 

@@ -16,7 +16,7 @@ public class Controller implements ControllerInterface {
     }
 
     @Override
-    public String createAccount() {
+    public Card createAccount() {
         return model.createAccount();
     }
 
