@@ -54,8 +54,9 @@ public class ViewConsole implements ViewInterface {
                                         
                     1. Balance
                     2. Add income
-                    3. Close account
-                    4. Log out
+                    3. Do transfer
+                    4. Close account
+                    5. Log out
                     0. Exit""");
             String option = scn.nextLine().trim();
             output("");
@@ -81,11 +82,36 @@ public class ViewConsole implements ViewInterface {
                     }
                 }
                 case "3" -> {
+                    output("Enter receiver card number:");
+                    String receiverCardNumber = scn.nextLine().trim();
+                    String errMessage = controller.receiverCardCheckBeforeTransfer(receiverCardNumber);
+                    if (!errMessage.isEmpty()) {
+                        output("\n" + errMessage);
+                        continue;
+                    }
+                    output("Enter number:");
+                    try {
+                        long number = Long.parseLong(scn.nextLine().trim());
+                        if (number < 0) {
+                            output("\nIncorrect input, please try again!");
+                        } else {
+                            try {
+                                controller.doTransfer(receiverCardNumber, number);
+                                output("\nTransfer has been performed successfully!");
+                            }catch (NotEnoughMoneyException e){
+                                output("\nYou do not have enough money to perform this transfer!");
+                            }
+                        }
+                    } catch (NumberFormatException e) {
+                        output("\nIncorrect input, please try again!");
+                    }
+                }
+                case "4" -> {
                     controller.closeAccount();
                     output("You have successfully closed account!");
                     return;
                 }
-                case "4" -> {
+                case "5" -> {
                     controller.logOutOfAccount();
                     output("You have successfully logged out!");
                     return;

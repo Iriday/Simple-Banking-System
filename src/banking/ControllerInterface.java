@@ -9,6 +9,10 @@ public interface ControllerInterface {
 
     void addIncome(long income);
 
+    String receiverCardCheckBeforeTransfer(String receiverCardNumber);
+
+    void doTransfer(String receiverCardNumber, long money) throws NotEnoughMoneyException;
+
     void closeAccount();
 
     void logOutOfAccount();

@@ -88,41 +88,33 @@ public class Model implements ModelInterface {
     @Override
     public long getAccountBalance() {
         throwExcIfNotLoggedIn();
-        try (Connection cn = DriverManager.getConnection(dbUrl);
-             Statement st = cn.createStatement();
-             ResultSet rs = st.executeQuery("""
-                     SELECT
-                        balance
-                     FROM
-                        card
-                     WHERE
-                        number = '$num'
-                     ;"""
-                     .replace("$num", cardNumber))) {
-            return rs.getLong("balance");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        return getBalance(cardNumber, dbUrl);
     }
 
     @Override
     public void addIncome(long income) {
         throwExcIfNotLoggedIn();
-        String addIncome = """
-                UPDATE
-                    card
-                SET
-                    balance = balance + ?
-                WHERE
-                    number = ?
-                ;""";
-        try (Connection cn = DriverManager.getConnection(dbUrl); PreparedStatement ps = cn.prepareStatement(addIncome)) {
-            ps.setLong(1, income);
-            ps.setString(2, cardNumber);
-            ps.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        addMoney(cardNumber, income, dbUrl);
+    }
+
+    private String recCardCheckErrMessage = null;
+
+    @Override
+    public String receiverCardCheckBeforeTransfer(String receiverCardNumber) {
+        throwExcIfNotLoggedIn();
+        recCardCheckErrMessage = receiverCardCheckBeforeTransfer(cardNumber, receiverCardNumber, dbUrl);
+        return recCardCheckErrMessage;
+    }
+
+    @Override
+    public void doTransfer(String receiverCardNumber, long money) throws NotEnoughMoneyException{
+        throwExcIfNotLoggedIn();
+        if (recCardCheckErrMessage == null) throw new IllegalStateException("receiverCardCheckBeforeTransfer is not called before doTransfer");
+        if (!recCardCheckErrMessage.isEmpty()) throw new IllegalStateException("Transfer is not possible because receiverCardCheckBeforeTransfer returned an error");
+        if (getBalance(cardNumber, dbUrl) < money) throw new NotEnoughMoneyException();
+
+        recCardCheckErrMessage = null;
+        doTransfer(cardNumber, receiverCardNumber, money, dbUrl);
     }
 
     @Override
@@ -151,5 +143,92 @@ public class Model implements ModelInterface {
 
     private void throwExcIfNotLoggedIn() {
         if (cardNumber == null) throw new IllegalStateException("User not logged in");
+    }
+
+    private static long getBalance(String cardNumber, String dbUrl) {
+        try (Connection cn = DriverManager.getConnection(dbUrl);
+             Statement st = cn.createStatement();
+             ResultSet rs = st.executeQuery("""
+                     SELECT
+                        balance
+                     FROM
+                        card
+                     WHERE
+                        number = '$num'
+                     ;"""
+                     .replace("$num", cardNumber))) {
+            return rs.getLong("balance");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void doTransfer(String senderCardNumber, String receiverCardNumber, long money, String dbUrl) {
+        takeMoney(senderCardNumber, money, dbUrl);
+        addMoney(receiverCardNumber, money, dbUrl);
+    }
+
+    private static void addMoney(String cardNumber, long money, String dbUrl) {
+        String addToBalance = """
+                UPDATE
+                    card
+                SET
+                    balance = balance + ?
+                WHERE
+                    number = ?
+                ;""";
+        try (Connection cn = DriverManager.getConnection(dbUrl); PreparedStatement ps = cn.prepareStatement(addToBalance)) {
+            ps.setLong(1, money);
+            ps.setString(2, cardNumber);
+            ps.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void takeMoney(String cardNumber, long money, String dbUrl) {
+        String subtractFromBalance = """
+                UPDATE 
+                    card
+                SET 
+                    balance = balance - ?
+                WHERE
+                    number = ?
+                ;""";
+        try (Connection cn = DriverManager.getConnection(dbUrl); PreparedStatement ps = cn.prepareStatement(subtractFromBalance)) {
+            ps.setLong(1, money);
+            ps.setString(2, cardNumber);
+            ps.execute();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static boolean isCardInDb(String cardNumber, String dbUrl) {
+        String isNumberInDb = """
+                SELECT
+                    number
+                FROM
+                    card
+                WHERE
+                    number = ?
+                """;
+        try (Connection cn = DriverManager.getConnection(dbUrl); PreparedStatement ps = cn.prepareStatement(isNumberInDb)) {
+            ps.setString(1, cardNumber);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String receiverCardCheckBeforeTransfer(String senderCardNumber, String receiverCardNumber, String dbUrl) {
+        if (senderCardNumber.equals(receiverCardNumber)) return "You can't transfer money to the same account!";
+        if (!Utils.isCardCorrect(receiverCardNumber)) return "Probably you made mistake in card number. Please try again!";
+        if (!isCardInDb(receiverCardNumber, dbUrl)) return "Such a card does not exist";
+        return "";
     }
 }
