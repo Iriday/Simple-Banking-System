@@ -57,7 +57,7 @@ public class Model implements ModelInterface {
 
     @Override
     public boolean logIntoAccount(String cardNumber, String pin) {
-        if (Utils.applyLuhnAlgorithm(cardNumber) % 10 != 0) return false;
+        if (!Utils.isCardCorrect(cardNumber) || !Utils.isPinCorrect(pin)) return false;
 
         try (Connection cn = DriverManager.getConnection(dbUrl);
              Statement st = cn.createStatement();

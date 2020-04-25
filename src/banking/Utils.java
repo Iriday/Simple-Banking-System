@@ -31,4 +31,13 @@ public class Utils {
                 .orElseThrow()
                 + Integer.parseInt(Character.toString(number.charAt(number.length() - 1))); // include dropped last digit
     }  // if (result % 10 == 0) (card)number is valid
+
+    public static boolean isCardCorrect(String number) {
+        return number.length() == 16 && patternDigits.matcher(number).matches()
+                && applyLuhnAlgorithm(number) % 10 == 0;
+    }
+
+    public static boolean isPinCorrect(String pin) {
+        return pin.length() == 4 && patternDigits.matcher(pin).matches();
+    }
 }
