@@ -36,6 +36,11 @@ public class Controller implements ControllerInterface {
     }
 
     @Override
+    public void getMoney(long money) throws NotEnoughMoneyException {
+        model.getMoney(money);
+    }
+
+    @Override
     public String receiverCardCheckBeforeTransfer(String receiverCardNumber) {
         return model.receiverCardCheckBeforeTransfer(receiverCardNumber);
     }

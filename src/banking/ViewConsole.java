@@ -57,9 +57,10 @@ public class ViewConsole implements ViewInterface {
                                         
                     1. Balance
                     2. Add income
-                    3. Do transfer
-                    4. Close account
-                    5. Log out
+                    3. Get money
+                    4. Do transfer
+                    5. Close account
+                    6. Log out
                     0. Exit""");
             String option = scn.nextLine().trim();
             output("");
@@ -85,6 +86,24 @@ public class ViewConsole implements ViewInterface {
                     }
                 }
                 case "3" -> {
+                    output("Enter number:");
+                    try {
+                        long number = Long.parseLong(scn.nextLine().trim());
+                        if (number < 0) {
+                            output("\nIncorrect input, please try again!");
+                        } else {
+                            try {
+                                controller.getMoney(number);
+                                output("\nOperation has been completed successfully!");
+                            } catch (NotEnoughMoneyException e) {
+                                output("\nYour balance is less than specified number!");
+                            }
+                        }
+                    } catch (NumberFormatException e) {
+                        output("\nIncorrect input, please try again!");
+                    }
+                }
+                case "4" -> {
                     output("Enter receiver card number:");
                     String receiverCardNumber = scn.nextLine().trim();
                     String errMessage = controller.receiverCardCheckBeforeTransfer(receiverCardNumber);
@@ -109,12 +128,12 @@ public class ViewConsole implements ViewInterface {
                         output("\nIncorrect input, please try again!");
                     }
                 }
-                case "4" -> {
+                case "5" -> {
                     controller.closeAccount();
                     output("You have successfully closed account!");
                     return;
                 }
-                case "5" -> {
+                case "6" -> {
                     controller.logOutOfAccount();
                     output("You have successfully logged out!");
                     return;

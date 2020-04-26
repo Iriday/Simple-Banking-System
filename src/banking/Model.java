@@ -60,6 +60,13 @@ public class Model implements ModelInterface {
         addMoney(cardNumber, income, dbUrl);
     }
 
+    @Override
+    public void getMoney(long money) throws NotEnoughMoneyException {
+        throwExcIfNotLoggedIn();
+        if (getBalance(cardNumber, dbUrl) < money) throw new NotEnoughMoneyException();
+        getMoney(cardNumber, money, dbUrl);
+    }
+
     private String recCardCheckErrMessage = null;
 
     @Override
@@ -136,7 +143,7 @@ public class Model implements ModelInterface {
     }
 
     private static void doTransfer(String senderCardNumber, String receiverCardNumber, long money, String dbUrl) {
-        takeMoney(senderCardNumber, money, dbUrl);
+        getMoney(senderCardNumber, money, dbUrl);
         addMoney(receiverCardNumber, money, dbUrl);
     }
 
@@ -158,7 +165,7 @@ public class Model implements ModelInterface {
         }
     }
 
-    private static void takeMoney(String cardNumber, long money, String dbUrl) {
+    private static void getMoney(String cardNumber, long money, String dbUrl) {
         String subtractFromBalance = """
                 UPDATE 
                     card
