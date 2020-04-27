@@ -1,5 +1,7 @@
 package banking;
 
+import java.util.List;
+
 public class Controller implements ControllerInterface {
     private final ModelInterface model;
     private final ViewInterface view;
@@ -23,6 +25,11 @@ public class Controller implements ControllerInterface {
     @Override
     public boolean logIntoAccount(String cardNumber, String PIN) {
         return model.logIntoAccount(cardNumber, PIN);
+    }
+
+    @Override
+    public List<Account> getAllAccounts() {
+        return model.getAllAccounts();
     }
 
     @Override

@@ -1,6 +1,8 @@
 package banking;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Model implements ModelInterface {
     private final String dbUrl;
@@ -45,6 +47,20 @@ public class Model implements ModelInterface {
             return true;
         } else {
             return false;
+        }
+    }
+
+    @Override
+    public List<Account> getAllAccounts() {
+        String selectAll = "SELECT * FROM card ORDER BY id;";
+        try (Connection cn = DriverManager.getConnection(dbUrl); Statement st = cn.createStatement(); ResultSet rs = st.executeQuery(selectAll)) {
+            List<Account> accounts = new ArrayList<>();
+            while (rs.next()) {
+                accounts.add(new Account(rs.getLong("id"), rs.getString("number"), rs.getString("pin"), rs.getLong("balance")));
+            }
+            return accounts;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 

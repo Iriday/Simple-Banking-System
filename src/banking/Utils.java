@@ -1,5 +1,6 @@
 package banking;
 
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
@@ -39,5 +40,17 @@ public class Utils {
 
     public static boolean isPinCorrect(String pin) {
         return pin.length() == 4 && patternDigits.matcher(pin).matches();
+    }
+
+    public static String accountsToTableString(List<Account> accounts) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("+------ID-------+------NUMBER------+-PIN--+------BALANCE-------+\n");
+        String separator = "+---------------+------------------+------+--------------------+\n";
+        accounts.forEach(acc -> {
+            builder.append(String.format("| %-13d | %s | %s | %18d |\n", acc.id, acc.number, acc.pin, acc.balance));
+            builder.append(separator);
+        });
+        builder.deleteCharAt(builder.length() - 1);
+        return builder.toString();
     }
 }

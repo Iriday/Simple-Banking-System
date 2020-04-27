@@ -19,7 +19,11 @@ public class ViewConsole implements ViewInterface {
 
     private void menuMain() {
         while (true) {
-            output("1. Create account\n2. Log into account\n0. Exit");
+            output("""
+                    1. Create account
+                    2. Log into account
+                    3. Show all accounts
+                    0. Exit""");
             String option = scn.nextLine().trim();
             output("");
 
@@ -33,6 +37,7 @@ public class ViewConsole implements ViewInterface {
                     output("Your card have been created\n" + "Your card number:\n" + card.getNumber() + "\nYour card PIN:\n" + card.getPin());
                 }
                 case "2" -> menuAccount();
+                case "3" -> output(Utils.accountsToTableString(controller.getAllAccounts()));
                 default -> output("Error, incorrect input");
             }
             output("");

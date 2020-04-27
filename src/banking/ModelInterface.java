@@ -1,9 +1,13 @@
 package banking;
 
+import java.util.List;
+
 public interface ModelInterface {
     Card createAccount();
 
     boolean logIntoAccount(String cardNumber, String PIN);
+
+    List<Account> getAllAccounts();
 
     long getAccountBalance();
 
