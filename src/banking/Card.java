@@ -19,8 +19,16 @@ public class Card {
 
     public static String generateUniqueNumber(String dbUrl) {
         StringBuilder builderCardNum;
+        String selectNumber = """
+                SELECT
+                    number
+                FROM 
+                    card
+                WHERE 
+                    number = ?
+                ;""";
 
-        try (Connection cn = DriverManager.getConnection(dbUrl); Statement st = cn.createStatement()) {
+        try (Connection cn = DriverManager.getConnection(dbUrl); PreparedStatement ps = cn.prepareStatement(selectNumber)) {
             while (true) {
                 builderCardNum = new StringBuilder();
                 builderCardNum.append("400000"); // Issuer Identification Number (IIN)
@@ -34,15 +42,8 @@ public class Card {
                     }
                 }
 
-                try (ResultSet rs = st.executeQuery("""
-                        SELECT
-                            number
-                        FROM 
-                            card
-                        WHERE 
-                            number = '$num'
-                        ;""".replace("$num", builderCardNum.toString()))) {
-
+                ps.setString(1, builderCardNum.toString());
+                try (ResultSet rs = ps.executeQuery()) {
                     if (!rs.next()) { //if number is unique return
                         return builderCardNum.toString();
                     }
